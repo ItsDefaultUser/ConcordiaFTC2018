@@ -4,12 +4,12 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-@Autonomous(name="Basic: Autonomouse", group="Linear Opmode")
+@Autonomous(name="java Linear Autonomous", group="Linear Opmode")
+//@Disabled
 public class Autonomouse extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
 
     @Override
     public void runOpMode() {
@@ -19,7 +19,7 @@ public class Autonomouse extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -50,3 +50,4 @@ public class Autonomouse extends LinearOpMode {
         }
     }
 }
+
