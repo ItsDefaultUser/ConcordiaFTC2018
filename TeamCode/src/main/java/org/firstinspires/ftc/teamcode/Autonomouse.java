@@ -9,7 +9,20 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Autonomouse extends LinearOpMode {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
+    private DcMotor leftFront = null;
+    private DcMotor leftBack = null;
+    private DcMotor rightFront = null;
+    private DcMotor rightBack = null;
+
+    private void ctrlLeft(double pow) {
+        leftFront.setPower(-pow);
+        leftBack.setPower(-pow);
+    }
+
+    private void ctrlRight(double pow) {
+        rightFront.setPower(pow);
+        rightBack.setPower(pow);
+    }
 
     @Override
     public void runOpMode() {
@@ -19,11 +32,10 @@ public class Autonomouse extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftDrive = hardwareMap.get(DcMotor.class, "left_drive");
-
-        // Most robots need the motor on one side to be reversed to drive forward
-        // Reverse the motor that runs backwards when connected directly to the battery
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftFront = hardwareMap.get(DcMotor.class, "left_front");
+        leftBack = hardwareMap.get(DcMotor.class, "left_back");
+        rightFront = hardwareMap.get(DcMotor.class, "right_front");
+        rightBack = hardwareMap.get(DcMotor.class, "right_back");
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -41,11 +53,13 @@ public class Autonomouse extends LinearOpMode {
             // rightPower = -gamepad1.right_stick_y ;
 
             // Send calculated power to wheels
-            leftDrive.setPower(leftPower);
+
+            ctrlLeft(0.5);
+            ctrlRight(0.5);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motor Status", "Motor Power: " + leftDrive.getPower());
+            telemetry.addData("Motor Status", "Motor Power: " + leftFront.getPower());
             telemetry.update();
         }
     }
