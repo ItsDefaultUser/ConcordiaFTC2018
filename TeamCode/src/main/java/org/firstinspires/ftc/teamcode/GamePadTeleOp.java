@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.hardware.Sensor;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -16,6 +18,10 @@ public class GamePadTeleOp extends LinearOpMode {
     private DcMotor rightFront = null;
     private DcMotor rightBack = null;
 
+    private DcMotor armMain = null;
+    //private Servo armClawL = null;
+    //private Servo armClawR = null;
+
     private void ctrlLeft(double pow) {
         leftFront.setPower(-pow);
         leftBack.setPower(-pow);
@@ -24,6 +30,14 @@ public class GamePadTeleOp extends LinearOpMode {
     private void ctrlRight(double pow) {
         rightFront.setPower(pow);
         rightBack.setPower(pow);
+    }
+
+    private void ctrlArm(double pow) {
+        if (pow != 0.0) {
+            armMain.setPower(pow);
+        } else if (pow == 0.0) {
+            armMain.setPower(0.0);
+        }
     }
 
     @Override
@@ -39,6 +53,10 @@ public class GamePadTeleOp extends LinearOpMode {
         rightFront = hardwareMap.get(DcMotor.class, "right_front");
         rightBack = hardwareMap.get(DcMotor.class, "right_back");
 
+        armMain = hardwareMap.get(DcMotor.class, "arm_main");
+        //clawL = hardwareMap.get(Servo.class, "claw_left");
+        //clawR = hardwareMap.get(Servo.class, "claw_right");
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
@@ -50,6 +68,8 @@ public class GamePadTeleOp extends LinearOpMode {
             double leftPower;
             double rightPower;
 
+            double armPower;
+
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
@@ -60,6 +80,9 @@ public class GamePadTeleOp extends LinearOpMode {
             leftPower    = Range.clip(drive + turn, -0.5, 0.5) ;
             rightPower   = Range.clip(drive - turn, -0.5, 0.5) ;
 
+            armPower = Range.clip(gamepad2.left_stick_y, -0.3, 0.3);
+
+
             // Tank Mode uses one stick to control each wheel.
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
             // leftPower  = -gamepad1.left_stick_y ;
@@ -68,6 +91,7 @@ public class GamePadTeleOp extends LinearOpMode {
             // Send calculated power to wheels
             ctrlLeft(leftPower);
             ctrlRight(rightPower);
+            ctrlArm(armPower);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
