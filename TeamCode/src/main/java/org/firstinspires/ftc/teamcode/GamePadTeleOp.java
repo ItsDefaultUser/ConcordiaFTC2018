@@ -19,8 +19,8 @@ public class GamePadTeleOp extends LinearOpMode {
     private DcMotor rightBack = null;
 
     private DcMotor armMain = null;
-    //private Servo armClawL = null;
-    //private Servo armClawR = null;
+    private Servo clawL = null;
+    private Servo clawR = null;
 
     private void ctrlLeft(double pow) {
         leftFront.setPower(-pow);
@@ -33,10 +33,28 @@ public class GamePadTeleOp extends LinearOpMode {
     }
 
     private void ctrlArm(double pow) {
-        if (pow != 0.0) {
-            armMain.setPower(pow);
-        } else if (pow == 0.0) {
-            armMain.setPower(0.0);
+        /*
+         * Encoder values:
+         * Side 1:
+         * Meridian:
+         * Side 2:
+         */
+        armMain.setPower(pow);
+    }
+
+    private void ctrlClaw(boolean open) {
+        double leftPos;
+        double rightPos;
+        leftPos = clawL.getPosition();
+        rightPos = clawR.getPosition();
+        if (open) {
+            // Operate servo in opening direction.
+            clawL.setPosition(leftPos + 0.01);
+            clawR.setPosition(rightPos - 0.01);
+        } else {
+            // Operate servo in closing direction.
+            clawL.setPosition(leftPos - 0.01);
+            clawR.setPosition(rightPos + 0.01);
         }
     }
 
@@ -54,8 +72,10 @@ public class GamePadTeleOp extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotor.class, "right_back");
 
         armMain = hardwareMap.get(DcMotor.class, "arm_main");
-        //clawL = hardwareMap.get(Servo.class, "claw_left");
-        //clawR = hardwareMap.get(Servo.class, "claw_right");
+        clawL = hardwareMap.get(Servo.class, "claw_left");
+        clawR = hardwareMap.get(Servo.class, "claw_right");
+
+        //armMain.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -69,19 +89,27 @@ public class GamePadTeleOp extends LinearOpMode {
             double rightPower;
 
             double armPower;
+            double armRev;
 
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
 
             // POV Mode uses left stick to go forward, and right stick to turn.
             // - This uses basic math to combine motions and is easier to drive straight.
-            double drive = -gamepad1.left_stick_y;
-            double turn  =  gamepad1.right_stick_x;
+            double drive = gamepad1.left_stick_y;
+            double turn  = gamepad1.right_stick_x;
             leftPower    = Range.clip(drive + turn, -0.5, 0.5) ;
             rightPower   = Range.clip(drive - turn, -0.5, 0.5) ;
 
-            armPower = Range.clip(gamepad2.left_stick_y, -0.3, 0.3);
+            armPower = Range.clip(-gamepad2.left_stick_y, -0.5, 0.5);
+            //armRev = armMain.getCurrentPosition();
 
+            double clawV = gamepad2.right_stick_y;
+            if (clawV > 0) {
+                ctrlClaw(true);
+            } else if (clawV < 0) {
+                ctrlClaw(false);
+            }
 
             // Tank Mode uses one stick to control each wheel.
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
@@ -95,7 +123,9 @@ public class GamePadTeleOp extends LinearOpMode {
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            telemetry.addData("Drive Power", "left (%.2f), right (%.2f)", leftPower, rightPower);
+            telemetry.addData("Arm Power", "(%.2f)", armPower);
+            telemetry.addData("Servo Pos", "left (%.2f), right (%.2f)", clawL.getPosition(), clawR.getPosition());
             telemetry.update();
         }
     }
