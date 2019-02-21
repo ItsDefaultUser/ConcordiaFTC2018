@@ -129,9 +129,6 @@ public class Motors extends LinearOpMode{
         telemetry.addData("HandPosition: ", handPosition);
 
 
-
-
-
         telemetry.update();
     }
 
