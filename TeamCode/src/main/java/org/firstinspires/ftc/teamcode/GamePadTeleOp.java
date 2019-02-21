@@ -101,7 +101,7 @@ public class GamePadTeleOp extends LinearOpMode {
             leftPower    = Range.clip(drive + turn, -0.5, 0.5) ;
             rightPower   = Range.clip(drive - turn, -0.5, 0.5) ;
 
-            armPower = Range.clip(-gamepad2.left_stick_y, -0.5, 0.5);
+            //armPower = Range.clip(-gamepad2.left_stick_y, -1, 1);
             //armRev = armMain.getCurrentPosition();
 
             double clawV = gamepad2.right_stick_y;
@@ -119,14 +119,16 @@ public class GamePadTeleOp extends LinearOpMode {
             // Send calculated power to wheels
             ctrlLeft(leftPower);
             ctrlRight(rightPower);
-            ctrlArm(armPower);
+            armMain.setPower(1.0);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Drive Power", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.addData("Arm Power", "(%.2f)", armPower);
             telemetry.addData("Servo Pos", "left (%.2f), right (%.2f)", clawL.getPosition(), clawR.getPosition());
+            telemetry.addData("jerome", "left (%.2f), right (%.2f)", clawL.getPosition(), clawR.getPosition());
             telemetry.update();
         }
     }
 }
+//oh baby
