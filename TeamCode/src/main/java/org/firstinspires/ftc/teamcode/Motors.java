@@ -24,7 +24,6 @@ public class Motors extends LinearOpMode{
     double rightPower;
     double armPower;
     double multiplier = 1;
-    double handPosition;//done in degrees, will convert to 0-1 soon enough
 
     double lastDpadPress;
 
@@ -72,24 +71,28 @@ public class Motors extends LinearOpMode{
                     lastDpadPress = System.currentTimeMillis();
                 }
             }
-
+/*
             if (gamepad1.right_bumper){
                 armPower = 1;}
             else if (gamepad1.left_bumper){
                 armPower = -1;}
             else{
                 armPower = 0;}
+*/
 
-
-            if (gamepad1.left_trigger > 0.5 && handPosition <= 179.5){
-                handPosition += 0.5;
+            if (gamepad2.right_bumper){
+                hand.setPosition(1);
             }
-            else if (gamepad1.right_trigger > 0.5 && handPosition >= 0.5){
-                handPosition -= 0.5;
+            else if (gamepad2.left_bumper){
+                hand.setPosition(-1);
+            }
+            else{
+                hand.setPosition(0);
             }
 
             leftPower = gamepad1.right_stick_y * multiplier;
             rightPower = gamepad1.left_stick_y * multiplier;
+            armPower = gamepad2.left_stick_y * multiplier;
 
 
 
@@ -106,9 +109,6 @@ public class Motors extends LinearOpMode{
             rightMotor.setPower(rightPower);
             armMotor.setPower(armPower);
 
-            if (hand.getPosition() != handPosition/180){
-                hand.setPosition(handPosition/180);
-            }
 
 
             // Show the elapsed game time and wheel power.
@@ -126,7 +126,6 @@ public class Motors extends LinearOpMode{
         telemetry.addData("Right Motor: ", rightMotor.getPower());
         telemetry.addData("Arm Motor: ", armMotor.getPower());
         telemetry.addData("Hand Servo: ", hand.getPosition());
-        telemetry.addData("HandPosition: ", handPosition);
 
 
         telemetry.update();
