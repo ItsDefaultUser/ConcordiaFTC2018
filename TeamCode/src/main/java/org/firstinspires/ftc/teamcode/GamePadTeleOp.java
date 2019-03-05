@@ -1,9 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.hardware.Sensor;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -49,12 +48,12 @@ public class GamePadTeleOp extends LinearOpMode {
         rightPos = clawR.getPosition();
         if (open) {
             // Operate servo in opening direction.
-            clawL.setPosition(leftPos + 0.01);
-            clawR.setPosition(rightPos - 0.01);
+            clawL.setPosition(leftPos + 0.02);
+            clawR.setPosition(rightPos - 0.02);
         } else {
             // Operate servo in closing direction.
-            clawL.setPosition(leftPos - 0.01);
-            clawR.setPosition(rightPos + 0.01);
+            clawL.setPosition(leftPos - 0.02);
+            clawR.setPosition(rightPos + 0.02);
         }
     }
 
@@ -98,16 +97,16 @@ public class GamePadTeleOp extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             double drive = gamepad1.left_stick_y;
             double turn  = gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -0.5, 0.5) ;
-            rightPower   = Range.clip(drive - turn, -0.5, 0.5) ;
+            leftPower    = Range.clip(drive + turn, -0.9, 0.9) ;
+            rightPower   = Range.clip(drive - turn, -0.9, 0.9) ;
 
             armPower = Range.clip(-gamepad2.left_stick_y, -0.5, 0.5);
             //armRev = armMain.getCurrentPosition();
 
             double clawV = gamepad2.right_stick_y;
-            if (clawV > 0) {
+            if (clawV > 0.5) {
                 ctrlClaw(true);
-            } else if (clawV < 0) {
+            } else if (clawV < -0.5) {
                 ctrlClaw(false);
             }
 
@@ -121,7 +120,7 @@ public class GamePadTeleOp extends LinearOpMode {
             ctrlRight(rightPower);
             ctrlArm(armPower);
 
-            // Show the elapsed game time and wheel power.
+            // Show the elapsed game time and
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Drive Power", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.addData("Arm Power", "(%.2f)", armPower);
