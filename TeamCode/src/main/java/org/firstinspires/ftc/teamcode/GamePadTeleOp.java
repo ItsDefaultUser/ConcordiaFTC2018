@@ -32,12 +32,6 @@ public class GamePadTeleOp extends LinearOpMode {
     }
 
     private void ctrlArm(double pow) {
-        /*
-         * Encoder values:
-         * Side 1:
-         * Meridian:
-         * Side 2:
-         */
         armMain.setPower(pow);
     }
 
@@ -48,12 +42,12 @@ public class GamePadTeleOp extends LinearOpMode {
         rightPos = clawR.getPosition();
         if (open) {
             // Operate servo in opening direction.
-            clawL.setPosition(leftPos + 0.02);
-            clawR.setPosition(rightPos - 0.02);
+            clawL.setPosition(leftPos + 0.01);
+            clawR.setPosition(rightPos - 0.01);
         } else {
             // Operate servo in closing direction.
-            clawL.setPosition(leftPos - 0.02);
-            clawR.setPosition(rightPos + 0.02);
+            clawL.setPosition(leftPos - 0.01);
+            clawR.setPosition(rightPos + 0.01);
         }
     }
 
@@ -73,8 +67,6 @@ public class GamePadTeleOp extends LinearOpMode {
         armMain = hardwareMap.get(DcMotor.class, "arm_main");
         clawL = hardwareMap.get(Servo.class, "claw_left");
         clawR = hardwareMap.get(Servo.class, "claw_right");
-
-        //armMain.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -97,11 +89,13 @@ public class GamePadTeleOp extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             double drive = gamepad1.left_stick_y;
             double turn  = gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -0.9, 0.9) ;
-            rightPower   = Range.clip(drive - turn, -0.9, 0.9) ;
+            leftPower    = Range.clip(drive + turn, -0.5, 0.5) ;
+            rightPower   = Range.clip(drive - turn, -0.5, 0.5) ;
 
             armPower = Range.clip(-gamepad2.left_stick_y, -0.5, 0.5);
-            //armRev = armMain.getCurrentPosition();
+            if (armPower < 0.5 && armPower > -0.5) {
+                armPower = 0.0;
+            }
 
             double clawV = gamepad2.right_stick_y;
             if (clawV > 0.5) {

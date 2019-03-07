@@ -51,7 +51,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@Autonomous(name = "Autonomous TFlow", group = "Concept")
+@Autonomous(name = "Autonomous TFlow", group = "Linear Opmode")
 public class AutonomousTFlow extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
@@ -113,6 +113,7 @@ public class AutonomousTFlow extends LinearOpMode {
         // Initialize variables
         int step = 0;
         int goldMineralPos = 9999;
+        int objDetected = 0;
         double sincePrev = 0.0;
 
         leftFront = hardwareMap.get(DcMotor.class, "left_front");
@@ -121,6 +122,7 @@ public class AutonomousTFlow extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotor.class, "right_back");
 
         /** Wait for the game to begin */
+        tfod.activate();
         waitForStart();
         runtime.reset();
 
@@ -130,11 +132,11 @@ public class AutonomousTFlow extends LinearOpMode {
             if (step == 0) {
                 // Landing Sequence (TBA)
                 sincePrev = getRuntime();
-                tfod.activate();
                 step = 10;
             } else if (step == 10) {
                 List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                if (updatedRecognitions.size() == 3) {
+                objDetected = updatedRecognitions.size();
+                if (updatedRecognitions.size() == 2) {
                     int goldMineralX = -1;
                     int silverMineral1X = -1;
                     int silverMineral2X = -1;
@@ -147,22 +149,53 @@ public class AutonomousTFlow extends LinearOpMode {
                             silverMineral1X = (int) recognition.getLeft();
                         }
                     }
-                    if (goldMineralX != -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-                        if (goldMineralX < silverMineral1X && goldMineralX < silverMineral2X) {
-                            goldMineralPos = -1;
-                        } else if (goldMineralX > silverMineral1X && goldMineralX > silverMineral2X) {
-                            goldMineralPos = 1;
-                        } else {
+                    if (goldMineralX == -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+                        goldMineralPos = -1;
+                    } else if (silverMineral2X == -1 && goldMineralX != -1 && silverMineral1X != -1) {
+                        if (goldMineralX < silverMineral1X) {
                             goldMineralPos = 0;
+                        } else {
+                            goldMineralPos = 1;
                         }
                     }
                 }
                 if (goldMineralPos != 9999) {
                     sincePrev = getRuntime();
                     tfod.shutdown();
-                    step = 11;
+                    step = 19;
+                }
+            } else if (step == 11) {
+                ctrlMotor(0.5, 0.5);
+                if ((getRuntime() - sincePrev) >= 0.2) {
+                    ctrlMotor(0.0, 0.0);
+                    sincePrev = getRuntime();
+                    step = 12;
+                }
+            } else if (step == 12) {
+                if (goldMineralPos == -1) {
+                    ctrlMotor(-0.5, 0.5);
+                } else if (goldMineralPos == 1) {
+                    ctrlMotor(0.5, -0.5);
+                }
+                if ((getRuntime() - sincePrev) >= 0.2) {
+                    ctrlMotor(0.0, 0.0);
+                    sincePrev = getRuntime();
+                    step = 13;
+                }
+            } else if (step == 13) {
+                ctrlMotor(0.5, 0.5);
+                if ((getRuntime() - sincePrev) >= 0.5) {
+                    ctrlMotor(0.0, 0.0);
+                    sincePrev = getRuntime();
+                    step = 14;
                 }
             }
+
+            telemetry.addData("Status", "Run Time: " + runtime.toString());
+            telemetry.addData("Drive Power", "left (%.2f), right (%.2f)", leftFront.getPower(), rightFront.getPower());
+            telemetry.addData("Obj detected", "(%.2f)", (double)(objDetected));
+            telemetry.addData("Gold mineral location: ", "(%.2f)", (double)(goldMineralPos));
+            telemetry.update();
         }
     }
 
