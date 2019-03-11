@@ -91,11 +91,17 @@ public class AutonomousTFlow extends LinearOpMode {
     private DcMotor rightFront = null;
     private DcMotor rightBack = null;
 
+    private DcMotor linearSlide = null;
+
     private void ctrlMotor(double LPow, double RPow) {
         leftFront.setPower(-LPow);
         leftBack.setPower(-LPow);
         rightFront.setPower(RPow);
         rightBack.setPower(RPow);
+    }
+
+    private void ctrlSlide(double pow) {
+        linearSlide.setPower(pow);
     }
 
     @Override
@@ -121,6 +127,8 @@ public class AutonomousTFlow extends LinearOpMode {
         rightFront = hardwareMap.get(DcMotor.class, "right_front");
         rightBack = hardwareMap.get(DcMotor.class, "right_back");
 
+        linearSlide = hardwareMap.get(DcMotor.class, "linear_slide");
+
         /** Wait for the game to begin */
         tfod.activate();
         waitForStart();
@@ -130,39 +138,50 @@ public class AutonomousTFlow extends LinearOpMode {
 
             // Send calculated power to wheels
             if (step == 0) {
-                // Landing Sequence (TBA)
-                sincePrev = getRuntime();
-                step = 10;
+                ctrlSlide(0.1);
+                if ((getRuntime() - sincePrev) >= 0.5) {
+                    ctrlSlide(0.0);
+                    sincePrev = getRuntime();
+                    step = 1;
+                }
+            } else if (step == 1) {
+                ctrlMotor(0.5,-0.5);
+                if ((getRuntime() - sincePrev) >= 0.05) {
+                    ctrlMotor(0.0, 0.0);
+                    sincePrev = getRuntime();
+                    step = 10;
+                }
             } else if (step == 10) {
                 List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
-                objDetected = updatedRecognitions.size();
-                if (updatedRecognitions.size() == 2) {
-                    int goldMineralX = -1;
-                    int silverMineral1X = -1;
-                    int silverMineral2X = -1;
-                    for (Recognition recognition : updatedRecognitions) {
-                        if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
-                            goldMineralX = (int) recognition.getLeft();
-                        } else if (silverMineral1X == -1) {
-                            silverMineral1X = (int) recognition.getLeft();
-                        } else {
-                            silverMineral1X = (int) recognition.getLeft();
+                if (updatedRecognitions != null){
+                    objDetected = updatedRecognitions.size();
+                    if (updatedRecognitions.size() == 2) {
+                        int goldMineralX = -1;
+                        int silverMineral1X = -1;
+                        int silverMineral2X = -1;
+                        for (Recognition recognition : updatedRecognitions) {
+                            if (recognition.getLabel().equals(LABEL_GOLD_MINERAL)) {
+                                goldMineralX = (int) recognition.getRight();
+                            } else if (silverMineral1X == -1) {
+                                silverMineral1X = (int) recognition.getRight();
+                            } else {
+                                silverMineral2X = (int) recognition.getRight();
+                            }
                         }
-                    }
-                    if (goldMineralX == -1 && silverMineral1X != -1 && silverMineral2X != -1) {
-                        goldMineralPos = -1;
-                    } else if (silverMineral2X == -1 && goldMineralX != -1 && silverMineral1X != -1) {
-                        if (goldMineralX < silverMineral1X) {
-                            goldMineralPos = 0;
-                        } else {
-                            goldMineralPos = 1;
+                        if (goldMineralX == -1 && silverMineral1X != -1 && silverMineral2X != -1) {
+                            goldMineralPos = -1;
+                        } else if (silverMineral2X == -1 && goldMineralX != -1 && silverMineral1X != -1) {
+                            if (goldMineralX < silverMineral1X) {
+                                goldMineralPos = 0;
+                            } else {
+                                goldMineralPos = 1;
+                            }
                         }
                     }
                 }
                 if (goldMineralPos != 9999) {
                     sincePrev = getRuntime();
-                    tfod.shutdown();
-                    step = 19;
+                    step = 11;
                 }
             } else if (step == 11) {
                 ctrlMotor(0.5, 0.5);
@@ -187,6 +206,7 @@ public class AutonomousTFlow extends LinearOpMode {
                 if ((getRuntime() - sincePrev) >= 0.5) {
                     ctrlMotor(0.0, 0.0);
                     sincePrev = getRuntime();
+                    tfod.shutdown();
                     step = 14;
                 }
             }
@@ -194,7 +214,7 @@ public class AutonomousTFlow extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Drive Power", "left (%.2f), right (%.2f)", leftFront.getPower(), rightFront.getPower());
             telemetry.addData("Obj detected", "(%.2f)", (double)(objDetected));
-            telemetry.addData("Gold mineral location: ", "(%.2f)", (double)(goldMineralPos));
+            telemetry.addData("Gold mineral location", "(%.2f)", (double)(goldMineralPos));
             telemetry.update();
         }
     }
