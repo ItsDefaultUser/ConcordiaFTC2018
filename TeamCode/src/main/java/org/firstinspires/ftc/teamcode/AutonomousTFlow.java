@@ -51,7 +51,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@Autonomous(name = "Autonomous TFlow", group = "Linear Opmode")
+@Autonomous(name = "TensorFlow Autonomous", group = "Linear Opmode")
 public class AutonomousTFlow extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
@@ -94,15 +94,13 @@ public class AutonomousTFlow extends LinearOpMode {
     private DcMotor linearSlide = null;
 
     private void ctrlMotor(double LPow, double RPow) {
-        leftFront.setPower(-LPow);
-        leftBack.setPower(-LPow);
-        rightFront.setPower(RPow);
-        rightBack.setPower(RPow);
+        leftFront.setPower(LPow);
+        leftBack.setPower(LPow);
+        rightFront.setPower(-RPow);
+        rightBack.setPower(-RPow);
     }
 
-    private void ctrlSlide(double pow) {
-        linearSlide.setPower(pow);
-    }
+    private void ctrlSlide(double pow) {linearSlide.setPower(pow);}
 
     @Override
     public void runOpMode() {
@@ -122,6 +120,8 @@ public class AutonomousTFlow extends LinearOpMode {
         int objDetected = 0;
         double sincePrev = 0.0;
 
+        double cube_r = 0.1;
+
         leftFront = hardwareMap.get(DcMotor.class, "left_front");
         leftBack = hardwareMap.get(DcMotor.class, "left_back");
         rightFront = hardwareMap.get(DcMotor.class, "right_front");
@@ -138,15 +138,34 @@ public class AutonomousTFlow extends LinearOpMode {
 
             // Send calculated power to wheels
             if (step == 0) {
-                ctrlSlide(0.1);
-                if ((getRuntime() - sincePrev) >= 0.5) {
+                ctrlSlide(1.0);
+                if ((getRuntime() - sincePrev) >= 4.5) {
                     ctrlSlide(0.0);
                     sincePrev = getRuntime();
                     step = 1;
                 }
             } else if (step == 1) {
-                ctrlMotor(0.5,-0.5);
-                if ((getRuntime() - sincePrev) >= 0.05) {
+                if ((getRuntime() - sincePrev) >= 2.0) {
+                    sincePrev = getRuntime();
+                    step = 2;
+                }
+            } else if (step == 2) {
+                ctrlMotor(-1.0, 1.0);
+                if ((getRuntime() - sincePrev) >= 0.2) {
+                    ctrlMotor(0.0, 0.0);
+                    sincePrev = getRuntime();
+                    step = 3;
+                }
+            } else if (step == 3) {
+                ctrlSlide(-1.0);
+                if ((getRuntime() - sincePrev) >= 3.3) {
+                    ctrlSlide(0.0);
+                    sincePrev = getRuntime();
+                    step = 4;
+                }
+            } else if (step == 4) {
+                ctrlMotor(1.0, -1.0);
+                if ((getRuntime() - sincePrev) >= 0.1) {
                     ctrlMotor(0.0, 0.0);
                     sincePrev = getRuntime();
                     step = 10;
@@ -181,33 +200,48 @@ public class AutonomousTFlow extends LinearOpMode {
                 }
                 if (goldMineralPos != 9999) {
                     sincePrev = getRuntime();
-                    step = 11;
+                    step = 12;
+                } else if ((getRuntime() - sincePrev) >= 15.0) {
+                    sincePrev = getRuntime();
+                    step = 13;
                 }
             } else if (step == 11) {
-                ctrlMotor(0.5, 0.5);
+                ctrlMotor(1.0, 1.0);
                 if ((getRuntime() - sincePrev) >= 0.2) {
                     ctrlMotor(0.0, 0.0);
                     sincePrev = getRuntime();
                     step = 12;
                 }
             } else if (step == 12) {
-                if (goldMineralPos == -1) {
-                    ctrlMotor(-0.5, 0.5);
-                } else if (goldMineralPos == 1) {
-                    ctrlMotor(0.5, -0.5);
-                }
-                if ((getRuntime() - sincePrev) >= 0.2) {
-                    ctrlMotor(0.0, 0.0);
-                    sincePrev = getRuntime();
-                    step = 13;
+                if (goldMineralPos == 1) {
+                    ctrlMotor(-1.0, 1.0);
+                    if ((getRuntime() - sincePrev) >= 0.1) {
+                        ctrlMotor(0.0, 0.0);
+                        sincePrev = getRuntime();
+                        step = 13;
+                    }
+                } else if (goldMineralPos == 0) {
+                    ctrlMotor(1.0, -1.0);
+                    if ((getRuntime() - sincePrev) >= 0.1) {
+                        ctrlMotor(0.0, 0.0);
+                        sincePrev = getRuntime();
+                        step = 13;
+                    }
+                } else if (goldMineralPos == -1) {
+                    ctrlMotor(1.0, -1.0);
+                    if ((getRuntime() - sincePrev) >= 0.3) {
+                        ctrlMotor(0.0, 0.0);
+                        sincePrev = getRuntime();
+                        step = 13;
+                    }
                 }
             } else if (step == 13) {
-                ctrlMotor(0.5, 0.5);
-                if ((getRuntime() - sincePrev) >= 0.5) {
+                ctrlMotor(1.0, 1.0);
+                if ((getRuntime() - sincePrev) >= 1.0) {
                     ctrlMotor(0.0, 0.0);
                     sincePrev = getRuntime();
                     tfod.shutdown();
-                    step = 14;
+                    step = 99;
                 }
             }
 

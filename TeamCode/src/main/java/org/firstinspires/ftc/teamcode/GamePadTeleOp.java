@@ -18,6 +18,7 @@ public class GamePadTeleOp extends LinearOpMode {
     private DcMotor rightBack = null;
 
     private DcMotor armMain = null;
+    private DcMotor linearSlide = null;
     private Servo clawL = null;
     private Servo clawR = null;
 
@@ -34,6 +35,8 @@ public class GamePadTeleOp extends LinearOpMode {
     private void ctrlArm(double pow) {
         armMain.setPower(pow);
     }
+
+    private void ctrlSlide(double pow) {linearSlide.setPower(pow);}
 
     private void ctrlClaw(boolean open) {
         double leftPos;
@@ -65,6 +68,7 @@ public class GamePadTeleOp extends LinearOpMode {
         rightBack = hardwareMap.get(DcMotor.class, "right_back");
 
         armMain = hardwareMap.get(DcMotor.class, "arm_main");
+        linearSlide = hardwareMap.get(DcMotor.class, "linear_slide");
         clawL = hardwareMap.get(Servo.class, "claw_left");
         clawR = hardwareMap.get(Servo.class, "claw_right");
 
@@ -80,7 +84,7 @@ public class GamePadTeleOp extends LinearOpMode {
             double rightPower;
 
             double armPower;
-            double armRev;
+            double slidePower;
 
             // Choose to drive using either Tank Mode, or POV Mode
             // Comment out the method that's not used.  The default below is POV.
@@ -89,12 +93,23 @@ public class GamePadTeleOp extends LinearOpMode {
             // - This uses basic math to combine motions and is easier to drive straight.
             double drive = gamepad1.left_stick_y;
             double turn  = gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -0.5, 0.5) ;
-            rightPower   = Range.clip(drive - turn, -0.5, 0.5) ;
+            leftPower    = Range.clip(drive + turn, -0.8, 0.8) ;
+            rightPower   = Range.clip(drive - turn, -0.8, 0.8) ;
 
             armPower = Range.clip(-gamepad2.left_stick_y, -0.5, 0.5);
             if (armPower < 0.5 && armPower > -0.5) {
                 armPower = 0.0;
+            }
+
+            if (gamepad2.dpad_down) {
+                slidePower = -1.0;
+                ctrlSlide(-1.0);
+            } else if (gamepad2.dpad_up) {
+                slidePower = 1.0;
+                ctrlSlide(1.0);
+            } else {
+                slidePower = 0.0;
+                ctrlSlide(0.0);
             }
 
             double clawV = gamepad2.right_stick_y;
@@ -118,6 +133,7 @@ public class GamePadTeleOp extends LinearOpMode {
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Drive Power", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.addData("Arm Power", "(%.2f)", armPower);
+            telemetry.addData("Slide Power", "(%.2f)", slidePower);
             telemetry.addData("Servo Pos", "left (%.2f), right (%.2f)", clawL.getPosition(), clawR.getPosition());
             telemetry.update();
         }
